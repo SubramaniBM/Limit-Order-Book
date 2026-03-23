@@ -32,14 +32,19 @@ void OrderBook::addOrder(Side side, int32_t price, uint64_t quantity)
                 uint64_t matchqty = std::min(order.quantity, sittingOrder.quantity);
                 std::cout << "TRADE: Order " << order.id << " matched with " << sittingOrder.id << " for " << matchqty << " units at price " << bestAskPrice << std::endl;
                 order.quantity -= matchqty, sittingOrder.quantity -= matchqty;
-                if (!sittingOrder.quantity)
+                if (!sittingOrder.quantity){
                     ordersAtPrice.erase(ordersAtPrice.begin());
+                    orderMap.erase(sittingOrder.id);
+                }
                 if (ordersAtPrice.empty())
                     asks.erase(bestAskPrice);
             }
         }
-        if (order.quantity > 0)
+        if (order.quantity > 0){
             bids[order.price].push_back(order);
+            struct OrderLocation coord{order.side, order.price};
+            orderMap[order.id]=coord;
+        }
     }
     else
     {
@@ -56,14 +61,19 @@ void OrderBook::addOrder(Side side, int32_t price, uint64_t quantity)
                 uint64_t matchqty = std::min(order.quantity, sittingOrder.quantity);
                 std::cout << "TRADE: Order " << order.id << " matched with " << sittingOrder.id << " for " << matchqty << " units at price " << bestBidPrice << std::endl;
                 order.quantity -= matchqty, sittingOrder.quantity -= matchqty;
-                if (!sittingOrder.quantity)
+                if (!sittingOrder.quantity){
                     ordersAtPrice.erase(ordersAtPrice.begin());
+                    orderMap.erase(sittingOrder.id);
+                }
                 if (ordersAtPrice.empty())
                     bids.erase(bestBidPrice);
             }
         }
-        if (order.quantity > 0)
+        if (order.quantity > 0){
             asks[order.price].push_back(order);
+            struct OrderLocation coord{order.side, order.price};
+            orderMap[order.id]=coord;
+        }
     }
 }
 
