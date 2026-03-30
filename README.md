@@ -54,10 +54,13 @@ This is where the business logic is implemented.
     * If a **Sell** order arrives, it attempts to match with existing **Buys** (`bids`). It continues matching as long as there is quantity left and the best bid price is greater than or equal to the sell order's price limit.
     * Whenever a sitting order is completely filled (`sittingOrder.quantity == 0`), it is erased from its queue and also erased from `orderMap` to free up space.
   * **Resting Orders**: If the incoming order cannot be completely filled (quantity > 0 after all possible matches), the remainder is added to the relevant side of the book as a "resting order", stored in a `std::vector` to maintain time-priority within that price level. The resting order's coordinates (`side`, `price`) are simultaneously recorded in the `orderMap`.
+* **`deleteOrder(uint64_t orderId)`**:
+  * Leverages the `orderMap` to achieve fast lookup. Instead of searching linearly across the entire order book, it immediately fetches the `Side` and `Price` of the order to pinpoint the exact list it belongs to.
+  * Once the specific price queue is found, it iterates through that list to find and remove the matching order. If the queue is depleted by the removal, it cleans up the empty price level in the tree map. This significantly minimizes overhead compared to a raw search.
 * **`display()`**: A utility function that prints the current state of the order book. Ascending order for asks, followed by the spread, and descending order for bids. 
 
 ### 4. `main.cpp`
 The entry point of the application. It creates an `OrderBook` instance and submits a series of test orders to demonstrate liquidity provision (adding orders that rest) and liquidity taking (crossing the spread to match existing orders).
 
 ## 🛠️ Next Steps (Phase 2 Continued)
-Currently, a hash map has been implemented to instantly look up any active order. We need to implement a `cancelOrder(uint64_t id)` function. Also, resting vectors require $O(N)$ removal shifting—we should look into mitigating this. As outlined in the roadmap, our next objective continues on Phase 2 to use the `std::unordered_map` layout to fully complete the $O(1)$ cancellations. We will also optimize the data structures and matching engine to eliminate unnecessary copies.
+We've successfully added the `deleteOrder(uint64_t id)` functionality that harnesses our `unordered_map` for fast price-level targeting! However, the remaining search and element shifting within the `std::vector` (the actual resting queue) still has an $O(N)$ removal cost. As outlined in the roadmap, our next objective is to fully complete the $O(1)$ cancellations—potentially by replacing `std::vector` with a doubly-linked list (`std::list`) and caching list iterators inside `orderMap`. We will also optimize the data structures and matching engine to eliminate unnecessary copies.
