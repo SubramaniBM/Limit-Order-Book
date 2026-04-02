@@ -11,7 +11,7 @@ A high-performance C++ implementation of a Limit Order Book, designed to efficie
 
 ### Phase 2: Speed & Performance (📍 You are here)
 - Implement $O(1)$ order cancellation using `std::unordered_map`.
-- Optimize memory overhead (pass-by-reference).
+- Optimize memory overhead (pass-by-reference and `std::move`).
 
 ### Phase 3: Stress Testing
 - Latency benchmarking using the `<chrono>` library.
@@ -53,7 +53,7 @@ This is where the business logic is implemented.
     * If a **Buy** order arrives, it attempts to match with existing **Sells** (`asks`). It continues matching as long as the incoming order has remaining quantity and the best ask price is less than or equal to the buy order's price limit.
     * If a **Sell** order arrives, it attempts to match with existing **Buys** (`bids`). It continues matching as long as there is quantity left and the best bid price is greater than or equal to the sell order's price limit.
     * Whenever a sitting order is completely filled (`sittingOrder.quantity == 0`), it is erased from its queue and also erased from `orderMap` to free up space.
-  * **Resting Orders**: If the incoming order cannot be completely filled (quantity > 0 after all possible matches), the remainder is added to the relevant side of the book as a "resting order", stored in a `std::vector` to maintain time-priority within that price level. The resting order's coordinates (`side`, `price`) are simultaneously recorded in the `orderMap`.
+  * **Resting Orders**: If the incoming order cannot be completely filled (quantity > 0 after all possible matches), the remainder is added to the relevant side of the book as a "resting order", stored in a `std::vector` to maintain time-priority within that price level. We now use `std::move(order)` to place the resting order in the data structure, preventing expensive object copies. The resting order's coordinates (`side`, `price`) are simultaneously recorded in the `orderMap`.
 * **`deleteOrder(uint64_t orderId)`**:
   * Leverages the `orderMap` to achieve fast lookup. Instead of searching linearly across the entire order book, it immediately fetches the `Side` and `Price` of the order to pinpoint the exact list it belongs to.
   * Once the specific price queue is found, it iterates through that list to find and remove the matching order. If the queue is depleted by the removal, it cleans up the empty price level in the tree map. This significantly minimizes overhead compared to a raw search.
@@ -63,4 +63,4 @@ This is where the business logic is implemented.
 The entry point of the application. It creates an `OrderBook` instance and submits a series of test orders to demonstrate liquidity provision (adding orders that rest) and liquidity taking (crossing the spread to match existing orders).
 
 ## 🛠️ Next Steps (Phase 2 Continued)
-We've successfully added the `deleteOrder(uint64_t id)` functionality that harnesses our `unordered_map` for fast price-level targeting! However, the remaining search and element shifting within the `std::vector` (the actual resting queue) still has an $O(N)$ removal cost. As outlined in the roadmap, our next objective is to fully complete the $O(1)$ cancellations—potentially by replacing `std::vector` with a doubly-linked list (`std::list`) and caching list iterators inside `orderMap`. We will also optimize the data structures and matching engine to eliminate unnecessary copies.
+We've successfully added the `deleteOrder(uint64_t id)` functionality that harnesses our `unordered_map` for fast price-level targeting! Furthermore, we've integrated optimizations by employing `std::move` to eliminate unnecessary copying during order placement. However, the remaining search and element shifting within the `std::vector` (the actual resting queue) still has an $O(N)$ removal cost. As outlined in the roadmap, our next objective is to fully complete the $O(1)$ cancellations—potentially by replacing `std::vector` with a doubly-linked list (`std::list`) and caching list iterators inside `orderMap`.
