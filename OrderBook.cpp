@@ -43,9 +43,8 @@ void OrderBook::addOrder(Side side, int32_t price, uint64_t quantity)
         }
         if (order.quantity > 0)
         {
-            bids[order.price].push_back(order);
-            struct OrderLocation coord{order.side, order.price};
-            orderMap[order.id] = coord;
+            bids[order.price].push_back(std::move(order));
+            orderMap[order.id] = {side, price};
         }
     }
     else
@@ -74,9 +73,8 @@ void OrderBook::addOrder(Side side, int32_t price, uint64_t quantity)
         }
         if (order.quantity > 0)
         {
-            asks[order.price].push_back(order);
-            struct OrderLocation coord{order.side, order.price};
-            orderMap[order.id] = coord;
+            asks[order.price].push_back(std::move(order));
+            orderMap[order.id] = {side, price};
         }
     }
 }
