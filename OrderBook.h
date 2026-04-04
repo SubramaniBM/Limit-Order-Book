@@ -1,7 +1,7 @@
 #pragma once
 #include "Order.h"
 #include <map>
-#include <vector>
+#include <list>
 #include <functional> //For Bids Sorting
 #include <unordered_map>
 
@@ -12,10 +12,11 @@ private:
     {
         Side side;
         int32_t price;
+        std::list<Order>::iterator iterator;
     };
     std::unordered_map<uint64_t, struct OrderLocation> orderMap;
-    std::map<int32_t, std::vector<Order>> asks;
-    std::map<int32_t, std::vector<Order>, std::greater<int32_t>> bids;
+    std::map<int32_t, std::list<Order>> asks;
+    std::map<int32_t, std::list<Order>, std::greater<int32_t>> bids;
     uint64_t nextId = 1;
 
 public:

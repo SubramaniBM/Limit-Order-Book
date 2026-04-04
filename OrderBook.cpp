@@ -28,14 +28,14 @@ void OrderBook::addOrder(Side side, int32_t price, uint64_t quantity)
                 break;
             while (order.quantity > 0 && ordersAtPrice.size())
             {
-                auto &sittingOrder = ordersAtPrice[0];
+                auto &sittingOrder = ordersAtPrice.front();
                 uint64_t matchqty = std::min(order.quantity, sittingOrder.quantity);
                 std::cout << "TRADE: Order " << order.id << " matched with " << sittingOrder.id << " for " << matchqty << " units at price " << bestAskPrice << std::endl;
                 order.quantity -= matchqty, sittingOrder.quantity -= matchqty;
                 if (!sittingOrder.quantity)
                 {
-                    ordersAtPrice.erase(ordersAtPrice.begin());
                     orderMap.erase(sittingOrder.id);
+                    ordersAtPrice.pop_front();
                 }
                 if (ordersAtPrice.empty())
                     asks.erase(bestAskPrice);
@@ -43,8 +43,8 @@ void OrderBook::addOrder(Side side, int32_t price, uint64_t quantity)
         }
         if (order.quantity > 0)
         {
-            bids[order.price].push_back(std::move(order));
-            orderMap[order.id] = {side, price};
+            auto it=bids[order.price].insert(bids[order.price].end(), std::move(order));
+            orderMap[order.id] = {side, price, it};
         }
     }
     else
@@ -58,14 +58,14 @@ void OrderBook::addOrder(Side side, int32_t price, uint64_t quantity)
                 break;
             while (order.quantity > 0 && ordersAtPrice.size())
             {
-                auto &sittingOrder = ordersAtPrice[0];
+                auto &sittingOrder = ordersAtPrice.front();
                 uint64_t matchqty = std::min(order.quantity, sittingOrder.quantity);
                 std::cout << "TRADE: Order " << order.id << " matched with " << sittingOrder.id << " for " << matchqty << " units at price " << bestBidPrice << std::endl;
                 order.quantity -= matchqty, sittingOrder.quantity -= matchqty;
                 if (!sittingOrder.quantity)
                 {
-                    ordersAtPrice.erase(ordersAtPrice.begin());
                     orderMap.erase(sittingOrder.id);
+                    ordersAtPrice.pop_front();
                 }
                 if (ordersAtPrice.empty())
                     bids.erase(bestBidPrice);
@@ -73,8 +73,8 @@ void OrderBook::addOrder(Side side, int32_t price, uint64_t quantity)
         }
         if (order.quantity > 0)
         {
-            asks[order.price].push_back(std::move(order));
-            orderMap[order.id] = {side, price};
+            auto it=asks[order.price].insert(asks[order.price].end(), std::move(order));
+            orderMap[order.id] = {side, price, it};
         }
     }
 }
@@ -90,28 +90,14 @@ void OrderBook::deleteOrder(uint64_t orderId)
     if (coord.side == Side::Buy)
     {
         auto &ordersAtPrice = bids[coord.price];
-        for (auto it = ordersAtPrice.begin(); it != ordersAtPrice.end(); ++it)
-        {
-            if (it->id == orderId)
-            {
-                ordersAtPrice.erase(it);
-                break;
-            }
-        }
+        ordersAtPrice.erase(coord.iterator);
         if (ordersAtPrice.empty())
             bids.erase(coord.price);
     }
     else if (coord.side == Side::Sell)
     {
         auto &ordersAtPrice = asks[coord.price];
-        for (auto it = ordersAtPrice.begin(); it != ordersAtPrice.end(); ++it)
-        {
-            if (it->id == orderId)
-            {
-                ordersAtPrice.erase(it);
-                break;
-            }
-        }
+        ordersAtPrice.erase(coord.iterator);
         if (ordersAtPrice.empty())
             asks.erase(coord.price);
     }
