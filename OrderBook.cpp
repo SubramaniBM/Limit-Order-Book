@@ -43,7 +43,7 @@ void OrderBook::addOrder(Side side, int32_t price, uint64_t quantity)
         }
         if (order.quantity > 0)
         {
-            auto it=bids[order.price].insert(bids[order.price].end(), std::move(order));
+            auto it = bids[order.price].insert(bids[order.price].end(), std::move(order));
             orderMap[order.id] = {side, price, it};
         }
     }
@@ -73,7 +73,7 @@ void OrderBook::addOrder(Side side, int32_t price, uint64_t quantity)
         }
         if (order.quantity > 0)
         {
-            auto it=asks[order.price].insert(asks[order.price].end(), std::move(order));
+            auto it = asks[order.price].insert(asks[order.price].end(), std::move(order));
             orderMap[order.id] = {side, price, it};
         }
     }
@@ -101,8 +101,8 @@ void OrderBook::deleteOrder(uint64_t orderId)
         if (ordersAtPrice.empty())
             asks.erase(coord.price);
     }
-    std::string sideStr=(coord.side==Side::Buy)?"BUY":"SELL";
-    std::cout<<"Successfully deleted "<<sideStr<<" order ["<<orderId<<"] at price "<<coord.price<<std::endl;
+    std::string sideStr = (coord.side == Side::Buy) ? "BUY" : "SELL";
+    std::cout << "Successfully deleted " << sideStr << " order [" << orderId << "] at price " << coord.price << std::endl;
     orderMap.erase(orderId);
 }
 
