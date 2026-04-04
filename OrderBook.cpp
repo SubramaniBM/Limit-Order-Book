@@ -101,6 +101,8 @@ void OrderBook::deleteOrder(uint64_t orderId)
         if (ordersAtPrice.empty())
             asks.erase(coord.price);
     }
+    std::string sideStr=(coord.side==Side::Buy)?"BUY":"SELL";
+    std::cout<<"Successfully deleted "<<sideStr<<" order ["<<orderId<<"] at price "<<coord.price<<std::endl;
     orderMap.erase(orderId);
 }
 

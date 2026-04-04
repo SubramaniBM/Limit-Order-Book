@@ -60,7 +60,7 @@ This is where the business logic is implemented.
 * **`display()`**: A utility function that prints the current state of the order book. Ascending order for asks, followed by the spread, and descending order for bids. 
 
 ### 4. `main.cpp`
-The entry point of the application. It creates an `OrderBook` instance and submits a series of test orders to demonstrate liquidity provision (adding orders that rest) and liquidity taking (crossing the spread to match existing orders).
+The entry point of the application. It creates an `OrderBook` instance and submits a series of test orders to demonstrate liquidity provision (adding orders that rest) and liquidity taking (crossing the spread to match existing orders). It now also features a demonstration of the $O(1)$ fast cancellation by removing a specific resting order before final display.
 
 ## 🛠️ Next Steps (Phase 3)
 Phase 2 optimizations have been fully completed with the transition to `std::list` in order to resolve the $O(N)$ removal cost, and caching list iterators inside `orderMap`. The $O(1)$ cancellation logic is fully intact!
